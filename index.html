@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Poll Iframes Minimal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: #1f2937;
+        color: white;
+        font-family: sans-serif;
+        margin: 2rem;
+      }
+      iframe {
+        display: inline-block;
+        margin: 0.25rem;
+        border: none;
+        transform-origin: top left;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="flex items-center gap-4 rounded-xl bg-teal-800/30 p-4 shadow-2xl mb-6"
+    >
+      <div class="flex items-center gap-2">
+        <button
+          id="decrement"
+          class="h-10 w-10 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700"
+        >
+          -
+        </button>
+        <span
+          id="scale-display"
+          class="min-w-[60px] text-center font-mono text-xl font-bold text-amber-400"
+          >100%</span
+        >
+        <button
+          id="increment"
+          class="h-10 w-10 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700"
+        >
+          +
+        </button>
+      </div>
+      <div class="h-8 w-px bg-white"></div>
+      <button
+        id="refresh"
+        class="rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 hover:bg-neutral-700"
+      >
+        Refresh Polls 🔄
+      </button>
+    </div>
+
+    <div id="iframes" class="flex gap-1"></div>
+    <script>
+      const iframeCount = 5;
+      const iframeContainer = document.getElementById("iframes");
+      let scale = 1;
+      let lastSizes = {}; // Using an object to store sizes by iframe name
+
+      // Handle messages from poll.html to resize dynamically
+      window.addEventListener("message", (event) => {
+        if (event.data?.type === "resize") {
+          // Find the specific iframe that sent the message
+          const targetIframe = document.querySelector(
+            `iframe[name="${event.data.name}"]`,
+          );
+
+          if (targetIframe) {
+            targetIframe.style.width = `${event.data.width}px`;
+            targetIframe.style.height = `${event.data.height}px`;
+            // Store the size
+            lastSizes[event.data.name] = {
+              width: event.data.width,
+              height: event.data.height,
+            };
+            // Reapply the scale to the specific iframe
+            targetIframe.style.transform = `scale(${scale})`;
+          }
+        }
+      });
+
+      function createIframes() {
+        iframeContainer.innerHTML = "";
+        lastSizes = {};
+        for (let i = 0; i < iframeCount; i++) {
+          const iframe = document.createElement("iframe");
+          iframe.src = "poll.html";
+          iframe.name = `poll-iframe-${i}`; // Assign a unique name
+          iframe.style.border = "none";
+          iframe.style.transformOrigin = "top left";
+          iframe.style.transform = `scale(${scale})`;
+          iframeContainer.appendChild(iframe);
+        }
+      }
+
+      function updateScaleDisplay() {
+        document.getElementById("scale-display").innerText =
+          `${(scale * 100).toFixed(0)}%`;
+        const iframes = iframeContainer.querySelectorAll("iframe");
+
+        iframes.forEach((iframe) => {
+          // Apply the visual scale
+          iframe.style.transform = `scale(${scale})`;
+
+          // Get the last known natural size
+          const iframeName = iframe.name;
+          const lastSize = lastSizes[iframeName];
+
+          if (lastSize) {
+            // Calculate the size difference (the "empty space")
+            const scaledWidth = lastSize.width * scale;
+            const horizontalOffset = lastSize.width - scaledWidth;
+
+            // Apply a negative margin to the right to pull the next iframe closer
+            iframe.style.marginRight = `-${horizontalOffset}px`;
+
+            // Calculate the vertical offset if needed
+            const scaledHeight = lastSize.height * scale;
+            const verticalOffset = lastSize.height - scaledHeight;
+
+            // Apply a negative bottom margin if you were stacking vertically
+            // iframe.style.marginBottom = `-${verticalOffset}px`;
+          }
+        });
+      }
+      document.getElementById("increment").addEventListener("click", () => {
+        scale += 0.1;
+        updateScaleDisplay();
+      });
+
+      document.getElementById("decrement").addEventListener("click", () => {
+        scale = Math.max(0.1, scale - 0.1);
+        updateScaleDisplay();
+      });
+
+      document
+        .getElementById("refresh")
+        .addEventListener("click", createIframes);
+
+      createIframes();
+    </script>
+  </body>
+</html>

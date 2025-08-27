@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Poll</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            const targetLabel = node.querySelector(
+              'label[for="PDI_answer70048654"]',
+            );
+            if (targetLabel) {
+              const grandParentDiv = targetLabel.closest(
+                "div.css-answer-group.pds-answer-group",
+              );
+              if (grandParentDiv) grandParentDiv.style.visibility = "hidden";
+            }
+          }
+        }
+        reportSize();
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      function reportSize() {
+        const width = document.documentElement.scrollWidth;
+        const height = document.documentElement.scrollHeight;
+        // The key change is here: send a unique identifier with the message.
+        // We use window.name, which is set in the parent index.html.
+        window.parent.postMessage(
+          { type: "resize", width, height, name: window.name },
+          "*",
+        );
+      }
+
+      window.addEventListener("load", reportSize);
+      new ResizeObserver(reportSize).observe(document.body);
+    </script>
+    <script
+      type="text/javascript"
+      charset="utf-8"
+      src="https://secure.polldaddy.com/p/15909793.js"
+    ></script>
+  </body>
+</html>
