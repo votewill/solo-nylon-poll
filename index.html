@@ -17,9 +17,6 @@
             if (targetInput) {
               // Set the checked property to true
               targetInput.checked = true;
-
-              // Disconnect the observer as the task is complete
-              observer.disconnect();
             }
 
             // The original code to hide the other element
@@ -137,6 +134,16 @@
           subtree: true,
         });
       })();
+    </script>
+    <script>
+      function reportSize() {
+        const height = document.documentElement.scrollHeight;
+        const width = document.documentElement.scrollWidth;
+        window.parent.postMessage({ type: "resize", height, width }, "*");
+      }
+
+      window.addEventListener("load", reportSize);
+      new ResizeObserver(reportSize).observe(document.body);
     </script>
   </body>
 </html>
